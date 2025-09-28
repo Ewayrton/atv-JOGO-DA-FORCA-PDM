@@ -85,7 +85,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Jogo da Forca</Text>
-      <Text>A palavra é:</Text>
+      <Text>A palavra é: {palavraSecreta}</Text>
       </View>
   );
 }
