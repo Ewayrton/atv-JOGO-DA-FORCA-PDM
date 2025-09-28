@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 const palavras = [
@@ -80,20 +80,47 @@ const palavras = [
 ];
 
 export default function App() {
-  const [palavraSecreta, setPalavraSecreta] = useState('INICIANDO');
+  const [palavraSecreta, setPalavraSecreta] = useState('');
+  const [letrasCorretas, setLetrasCorretas] = useState<string[]>([]);
+
+  const iniciarJogo = () => {
+    const indiceAleatorio = Math.floor(Math.random() * palavras.length);
+    const palavraSorteada = palavras[indiceAleatorio];
+    setPalavraSecreta(palavraSorteada);
+    setLetrasCorretas([]); // Limpa as letras corretas ao iniciar um novo jogo
+  }
+
+  useEffect(() => {
+    iniciarJogo();
+  }, []);
+
+  // Função para para renderizar a palavra com underlines
+  const palavraMascarada = () => {
+    if (!palavraSecreta) return '';
+
+    return palavraSecreta.split('').map(letra => (
+      letrasCorretas.includes(letra) ? letra : '_'
+    )).join(' ');
+  };
 
   return (
     <View style={styles.container}>
-      <Text>Jogo da Forca</Text>
-      <Text>A palavra é: {palavraSecreta}</Text>
-      </View>
+      <Text style={styles.palavra}>{palavraMascarada()}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
   },
+  palavra: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    letterSpacing: 8,
+    marginBottom: 20,
+  }
 });
