@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Teclado from '@/components/Teclado';
 
 const palavras = [
   // Palavras fáceis
@@ -102,10 +103,14 @@ export default function App() {
       letrasCorretas.includes(letra) ? letra : '_'
     )).join(' ');
   };
+  const handleLetraPressionada = (letra: string) => {
+    console.log('Letra pressionada:', letra); // Por enquanto, só exibi no console
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.palavra}>{palavraMascarada()}</Text>
+      <Teclado onLetraPressionada={handleLetraPressionada} />
     </View>
   );
 }
