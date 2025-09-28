@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Button, Alert } from 'react-native';
 import Teclado from '@/components/Teclado';
 
 const palavras = [
@@ -80,53 +80,98 @@ const palavras = [
   'NETUNO', 'VENUS', 'PLUTAO'
 ];
 
+const MAX_ERROS = 6; // Definimos o número máximo de tentativas
+
 export default function App() {
   const [palavraSecreta, setPalavraSecreta] = useState('');
   const [letrasCorretas, setLetrasCorretas] = useState<string[]>([]);
   const [letrasIncorretas, setLetrasIncorretas] = useState<string[]>([]);
+  // --- NOVO: Estado para controlar o status do jogo ---
+  const [statusJogo, setStatusJogo] = useState('jogando'); // pode ser 'jogando', 'vitoria', 'derrota'
 
   const iniciarJogo = () => {
     const indiceAleatorio = Math.floor(Math.random() * palavras.length);
     const palavraSorteada = palavras[indiceAleatorio];
     setPalavraSecreta(palavraSorteada);
-    // Resetar as letras corretas e incorretas
-    setLetrasCorretas([]); 
-    setLetrasIncorretas([]); 
-  }
+    setLetrasCorretas([]);
+    setLetrasIncorretas([]);
+    // --- ATUALIZAÇÃO: Reseta o status do jogo ---
+    setStatusJogo('jogando');
+  };
 
   useEffect(() => {
     iniciarJogo();
   }, []);
 
-  // Função para para renderizar a palavra com underlines
+  // --- NOVO: useEffect para verificar vitória ou derrota a cada jogada ---
+  useEffect(() => {
+    if (palavraSecreta && statusJogo === 'jogando') {
+      // Verifica Vitória
+      const todasLetrasAdivinhadas = palavraSecreta.split('').every(letra => letrasCorretas.includes(letra));
+      if (todasLetrasAdivinhadas) {
+        setStatusJogo('vitoria');
+        Alert.alert('Parabéns!', 'Você acertou a palavra!');
+      }
+
+      // Verifica Derrota
+      if (letrasIncorretas.length >= MAX_ERROS) {
+        setStatusJogo('derrota');
+        Alert.alert('Que pena!', `Você perdeu! A palavra era: ${palavraSecreta}`);
+      }
+    }
+  }, [letrasCorretas, letrasIncorretas, palavraSecreta, statusJogo]);
+
+
   const palavraMascarada = () => {
     if (!palavraSecreta) return '';
-
-    return palavraSecreta.split('').map(letra => (
-      letrasCorretas.includes(letra) ? letra : '_'
-    )).join(' ');
+    // Se o jogo acabou, mostra a palavra completa
+    if (statusJogo !== 'jogando') {
+      return palavraSecreta.split('').join(' ');
+    }
+    return palavraSecreta
+      .split('')
+      .map(letra => (letrasCorretas.includes(letra) ? letra : '_'))
+      .join(' ');
   };
 
   const handleLetraPressionada = (letra: string) => {
-    // 1. Verifica se a letra já foi tentada (seja correta ou incorreta)
-    if (letrasCorretas.includes(letra) || letrasIncorretas.includes(letra)) {
-      return; // Se já foi tentada, não faz nada
+    // Só permite jogar se o status for 'jogando'
+    if (statusJogo !== 'jogando' || letrasCorretas.includes(letra) || letrasIncorretas.includes(letra)) {
+      return;
     }
 
-    // 2. Verifica se a letra pertence à palavra secreta
     if (palavraSecreta.includes(letra)) {
-      // Se acertou, adiciona a letra à lista de letras corretas
       setLetrasCorretas([...letrasCorretas, letra]);
     } else {
-      // Se errou, adiciona a letra à lista de letras incorretas
       setLetrasIncorretas([...letrasIncorretas, letra]);
     }
   };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.titulo}>Jogo da Forca</Text>
+      
       <Text style={styles.palavra}>{palavraMascarada()}</Text>
-      <Teclado onLetraPressionada={handleLetraPressionada} />
+      
+      <View style={styles.letrasContainer}>
+        <Text style={styles.letrasTexto}>Letras erradas: {letrasIncorretas.join(', ')}</Text>
+      </View>
+
+      <Text style={styles.tentativasTexto}>Tentativas restantes: {MAX_ERROS - letrasIncorretas.length}</Text>
+      
+      {/* O teclado só será mostrado se o jogo estiver em andamento */}
+      {statusJogo === 'jogando' ? (
+        <Teclado onLetraPressionada={handleLetraPressionada} />
+      ) : (
+        <Text style={styles.mensagemFimDeJogo}>
+          {statusJogo === 'vitoria' ? 'Você venceu! 🎉' : 'Você perdeu! 😢'}
+        </Text>
+      )}
+
+      {/* --- NOVO: Botão para reiniciar o jogo --- */}
+      <View style={styles.botaoReiniciarContainer}>
+        <Button title="Reiniciar Jogo" onPress={iniciarJogo} color="#007BFF" />
+      </View>
     </View>
   );
 }
@@ -136,23 +181,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f5f5f5',
     padding: 10,
+  },
+  titulo: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    color: '#333',
   },
   palavra: {
     fontSize: 34,
     fontWeight: 'bold',
     letterSpacing: 8,
-    marginBottom: 20,
+    marginBottom: 15,
     color: '#333',
+    textAlign: 'center'
   },
-  // -- NOVOS ESTILOS --
   letrasContainer: {
-    marginBottom: 20,
-    height: 30, // Altura fixa para não "pular" quando a primeira letra errada aparecer
+    minHeight: 30, // Garante espaço mesmo quando vazio
+    marginBottom: 5,
   },
   letrasTexto: {
     fontSize: 18,
-    color: '#d9534f', // tom de vermelho para os erros
+    color: '#d9534f',
+    fontWeight: '500',
+  },
+  tentativasTexto: {
+    fontSize: 18,
+    color: '#555',
+    marginBottom: 20,
+  },
+  mensagemFimDeJogo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 20,
+    color: '#333',
+  },
+  botaoReiniciarContainer: {
+    marginTop: 30,
+    width: '60%',
+    borderRadius: 8,
+    overflow: 'hidden', // Necessário para o borderRadius funcionar no Android
   }
 });
