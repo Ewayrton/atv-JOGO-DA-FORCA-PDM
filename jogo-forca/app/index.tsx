@@ -83,12 +83,15 @@ const palavras = [
 export default function App() {
   const [palavraSecreta, setPalavraSecreta] = useState('');
   const [letrasCorretas, setLetrasCorretas] = useState<string[]>([]);
+  const [letrasIncorretas, setLetrasIncorretas] = useState<string[]>([]);
 
   const iniciarJogo = () => {
     const indiceAleatorio = Math.floor(Math.random() * palavras.length);
     const palavraSorteada = palavras[indiceAleatorio];
     setPalavraSecreta(palavraSorteada);
-    setLetrasCorretas([]); // Limpa as letras corretas ao iniciar um novo jogo
+    // Resetar as letras corretas e incorretas
+    setLetrasCorretas([]); 
+    setLetrasIncorretas([]); 
   }
 
   useEffect(() => {
@@ -103,8 +106,21 @@ export default function App() {
       letrasCorretas.includes(letra) ? letra : '_'
     )).join(' ');
   };
+
   const handleLetraPressionada = (letra: string) => {
-    console.log('Letra pressionada:', letra); // Por enquanto, só exibi no console
+    // 1. Verifica se a letra já foi tentada (seja correta ou incorreta)
+    if (letrasCorretas.includes(letra) || letrasIncorretas.includes(letra)) {
+      return; // Se já foi tentada, não faz nada
+    }
+
+    // 2. Verifica se a letra pertence à palavra secreta
+    if (palavraSecreta.includes(letra)) {
+      // Se acertou, adiciona a letra à lista de letras corretas
+      setLetrasCorretas([...letrasCorretas, letra]);
+    } else {
+      // Se errou, adiciona a letra à lista de letras incorretas
+      setLetrasIncorretas([...letrasIncorretas, letra]);
+    }
   };
 
   return (
@@ -121,11 +137,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
+    padding: 10,
   },
   palavra: {
     fontSize: 34,
     fontWeight: 'bold',
     letterSpacing: 8,
     marginBottom: 20,
+    color: '#333',
+  },
+  // -- NOVOS ESTILOS --
+  letrasContainer: {
+    marginBottom: 20,
+    height: 30, // Altura fixa para não "pular" quando a primeira letra errada aparecer
+  },
+  letrasTexto: {
+    fontSize: 18,
+    color: '#d9534f', // tom de vermelho para os erros
   }
 });
