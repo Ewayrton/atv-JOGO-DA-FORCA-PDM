@@ -164,12 +164,14 @@ export default function App() {
       
       {/* O teclado só será mostrado se o jogo estiver em andamento */}
       {statusJogo === 'jogando' ? (
-        <Teclado onLetraPressionada={handleLetraPressionada} />
-      ) : (
+        <Teclado onLetraPressionada={handleLetraPressionada}
+        letrasDesabilitadas={[...letrasCorretas, ...letrasIncorretas]} 
+        />
+        ) : (
         <Text style={styles.mensagemFimDeJogo}>
           {statusJogo === 'vitoria' ? 'Você venceu! 🎉' : 'Você perdeu! 😢'}
         </Text>
-      )}
+        )}
 
       {/* --- NOVO: Botão para reiniciar o jogo --- */}
       <View style={styles.botaoReiniciarContainer}>

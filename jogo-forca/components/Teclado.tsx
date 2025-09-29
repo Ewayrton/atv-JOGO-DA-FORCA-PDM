@@ -1,38 +1,45 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
-// Lista de letras do alfabeto
-const LETRAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÇ'.split('');
+const LETRAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-// tipo das props que o componente vai receber
+// --- ATUALIZAÇÃO: Adicionamos a prop 'letrasDesabilitadas' ---
 type TecladoProps = {
   onLetraPressionada: (letra: string) => void;
+  letrasDesabilitadas: string[];
 };
 
-export default function Teclado({ onLetraPressionada }: TecladoProps) {
+export default function Teclado({ onLetraPressionada, letrasDesabilitadas }: TecladoProps) {
   return (
     <View style={styles.container}>
-      {/* usei o .map para criar um botão para cada letra */}
-      {LETRAS.map((letra) => (
-        <TouchableOpacity
-          key={letra}
-          style={styles.botao}
-          // Quando o botão é pressionado, chama a função que é passada via props
-          onPress={() => onLetraPressionada(letra)}
-        >
-          <Text style={styles.textoBotao}>{letra}</Text>
-        </TouchableOpacity>
-      ))}
+      {LETRAS.map((letra) => {
+        // Verifica se a letra atual já foi tentada
+        const desabilitado = letrasDesabilitadas.includes(letra);
+
+        return (
+          <TouchableOpacity
+            key={letra}
+            // --- ATUALIZAÇÃO: Aplica um estilo diferente se o botão estiver desabilitado ---
+            style={[styles.botao, desabilitado && styles.botaoDesabilitado]}
+            onPress={() => onLetraPressionada(letra)}
+            // --- ATUALIZAÇÃO: Desativa o botão se a letra já foi usada ---
+            disabled={desabilitado}
+          >
+            <Text style={styles.textoBotao}>{letra}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row', // Organiza os botões em linhas
-    flexWrap: 'wrap',     // Permite que os botões quebrem para a próxima linha
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
     marginTop: 20,
+    paddingHorizontal: 5,
   },
   botao: {
     width: 40,
@@ -42,6 +49,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#007BFF',
     margin: 4,
     borderRadius: 8,
+  },
+  // --- NOVO: Estilo para os botões desativados ---
+  botaoDesabilitado: {
+    backgroundColor: '#a9a9a9', // Cinzento
   },
   textoBotao: {
     color: '#FFFFFF',
