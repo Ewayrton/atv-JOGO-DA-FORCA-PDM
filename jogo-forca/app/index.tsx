@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Button, Alert } from 'react-native';
 import Teclado from '@/components/Teclado';
+import Forca from '@/components/Forca';
 
 const palavras = [
   // Palavras fáceis
@@ -150,6 +151,8 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Jogo da Forca</Text>
+
+      <Forca numeroErros={letrasIncorretas.length} />
       
       <Text style={styles.palavra}>{palavraMascarada()}</Text>
       
